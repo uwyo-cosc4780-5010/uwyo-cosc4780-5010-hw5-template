@@ -1,31 +1,43 @@
+// Macros to shut up the C++ warnings
+#define printInt(x)
+#define printDouble(x)
+#define printString(x)
+#define readInt() 0
+#define readDouble() 0
+#define readString() 0
+
 #include <string>
 
 using std::string;
 
-bool compareStr(string x, string y)
+bool callMeMaybe(bool x)
 {
-    return x > y;
-}
-
-bool compareDbl(double x, double y)
-{
-    return x == y;
-}
-
-bool compareInt(int x, int y)
-{
-    return x != y;
-}
-bool compareBool(bool x, bool y)
-{
-    return x <= compareInt(5, 6);
+    return x;
 }
 
 int main()
 {
-    bool i = compareStr("hi", "hello");
-    i = compareDbl(3.14, 5.0);
-    i = compareInt(10, 11);
-    i = compareBool(true, false);
+    int x = 10;
+    double y = 50.0;
+    callMeMaybe((10 > 5) || ((y = 3.0) > 1.0));
+    if (y == 50.0)
+    {
+        printString("nice distance\n");
+    }
+    else
+    {
+        printString("whoopsie!\n");
+    }
+    callMeMaybe((10 < 5) && ((y = 3.0) > 1.0));
+    if (y == 50.0)
+    {
+        printString("epic hacking\n");
+        printString("¯\\_(ツ)_/¯\n");
+    }
+    else
+    {
+        printString("oh no!\n");
+        printString("¯\\_(ツ)_/¯\n");
+    }
     return 0;
 }

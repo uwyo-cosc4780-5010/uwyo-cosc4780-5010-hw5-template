@@ -1,5 +1,10 @@
+bool wantBoolPlz(bool x) {
+    return x;
+}
+
 int main()
 {
-    int x, y, z;
-    x = "hey!";
+    bool x;
+    wantBoolPlz(x); // x uninitialized
+    return 0;
 }

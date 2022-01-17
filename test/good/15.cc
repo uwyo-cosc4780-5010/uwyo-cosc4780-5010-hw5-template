@@ -1,45 +1,36 @@
-#include <stdio.h>
-#include <string>
-
-using std::string;
-
-void printf(string s)
-{
-    // print
-}
-
-void printfmt(string fmt, int val)
-{
-    // print
-}
-
-void scanf(string fmt, int val)
-{
-    // read
-}
+// Macros to shut up the C++ warnings
+#define printInt(x)
+#define printDouble(x)
+#define printString(x)
+#define readInt() 0
+#define readDouble() 0
+#define readString() 0
 
 int main()
 {
-    int rows, coef, space, i, j;
-    coef = 1;
-    i = 0;
-    printf("Enter the number of rows: ");
-    scanf("%d", rows);
-    while (i++ < rows)
+    int space, rows, i, j;
+
+    printString("Enter number of rows:\n");
+    rows = readInt();
+    i = 1;
+    j = 0;
+
+    while (i <= rows)
     {
         space = 1;
-        while (space++ <= rows - i)
-            printf("  ");
-        j = 0;
-        while (j++ <= i)
+        while (space <= rows - i)
         {
-            if (j == 0 || i == 0)
-                coef = 1;
-            else
-                coef = coef * (i - j + 1) / j;
-            printfmt("%4d", coef);
+            printString("  ");
+            ++space;
         }
-        printf("\n");
+
+        while (j++ != 2 * i - 1)
+        {
+            printString("* ");
+        }
+        printString("\n");
+        j = 0;
+        i++;
     }
     return 0;
 }

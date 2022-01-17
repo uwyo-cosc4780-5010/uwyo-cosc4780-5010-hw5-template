@@ -1,77 +1,124 @@
+{-# LANGUAGE TupleSections #-}
+
 module Main where
+
+import Control.Monad (foldM)
+import Data.Char
+import Data.List
+import System.Console.ANSI
+import System.Directory
 import System.Environment
 import System.Exit
-import System.Process
-import System.Directory
-import Data.List
-import Data.Char
 import System.FilePath
-import System.Console.ANSI
 import System.IO
-import Control.Monad (foldM)
+import System.Process
 
 main :: IO ()
 main = do
   args <- getArgs
   case args of
-    "haskell":_ -> toTestProcess "haskell" >>= run
-    "java":_ -> toTestProcess "java" >>= run
-    _ -> die "tester: bad arguments\nusage: tester <haskell | java>"
+    "haskell" : "grad" : _ -> run True "haskell"
+    "haskell" : _ -> run False "haskell"
+    "java" : "grad" : _ -> run True "java"
+    "java" : _ -> run False "java"
+    _ -> die "tester: bad arguments\nusage: tester <haskell | java> [grad]"
 
-toTestProcess :: String -> IO CreateProcess
-toTestProcess s = do
-  wd <- getCurrentDirectory 
-  return $ CreateProcess { cmdspec = ShellCommand "make compile",
-                            cwd = Just (takeDirectory wd </> s),
-                            env = Nothing,
-                            std_in = CreatePipe,
-                            std_out = CreatePipe,
-                            std_err = CreatePipe,
-                            close_fds = False,
-                            create_group = False,
-                            delegate_ctlc = False,
-                            detach_console = False,
-                            create_new_console = False,
-                            new_session = False,
-                            child_group = Nothing,
-                            child_user = Nothing,
-                            use_process_jobs = False }
+toTestProcess :: String -> String -> IO CreateProcess
+toTestProcess haskellJava sourceFile = do
+  wd <- getCurrentDirectory
+  return $
+    CreateProcess
+      { cmdspec =
+          RawCommand
+            ( if haskellJava == "java"
+                then "java"
+                else takeDirectory wd </> haskellJava </> "icpp"
+            )
+            (["Main" | haskellJava == "java"] ++ [wd </> sourceFile]),
+        cwd = Just (takeDirectory wd </> haskellJava),
+        env = Nothing,
+        std_in = CreatePipe,
+        std_out = CreatePipe,
+        std_err = CreatePipe,
+        close_fds = False,
+        create_group = False,
+        delegate_ctlc = False,
+        detach_console = False,
+        create_new_console = False,
+        new_session = False,
+        child_group = Nothing,
+        child_user = Nothing,
+        use_process_jobs = False
+      }
 
-run :: CreateProcess  -> IO ()
-run p = do
-  good <- map ((,) ExitSuccess . ("good" </>)) . sortOn ((read :: String -> Int) . takeWhile isDigit) <$> listDirectory "good"
-  bad <-  map ((,) (ExitFailure 2) . ("bad" </>))  . sortOn ((read :: String -> Int) . takeWhile isDigit) <$> listDirectory "bad"
-  score <- foldM (runFile p) 0 (good ++ bad)
-  putStrLn ""
-  setSGR [SetColor Foreground Vivid Blue]
-  putStrLn $ "testing complete, final (tentative) score: " ++ show score ++ "/80"
-  setSGR [Reset]
-
-runFile :: CreateProcess -> Int -> (ExitCode,FilePath) -> IO Int
-runFile process score (expect,filename) = do
-  putStrLn $ "typchecking file: " ++ filename ++ " ... "
-  source <- readFile filename
-  (Just stdin, Just stdout, Just stderr, ph) <- createProcess process
-  hPutStr stdin source
-  exitCode <- waitForProcess ph
-  output <- hGetContents stdout
-  if exitCode `matches` expect then do
-    setSGR [SetColor Foreground Dull Green]
-    putStrLn $ "typecheck success! score: " ++ show (score + 2) ++ "/80"
+run :: Bool -> String -> IO ()
+run testGrad haskellJava =
+  do
+    good <-
+      map (ExitSuccess,) . sortOn ((read :: String -> Int) . takeWhile isDigit . takeFileName . fst)
+        <$> ( (++) <$> (map ((,5) . ("good" </>)) . filter (isSuffixOf ".cc") <$> listDirectory "good")
+                <*> if testGrad then map ((,3) . ("grad" </>) . ("good" </>)) . filter (isSuffixOf ".cc") <$> listDirectory ("grad" </> "good") else pure []
+            )
+    bad <-
+      map (ExitFailure 2,) . sortOn ((read :: String -> Int) . takeWhile isDigit . takeFileName . fst)
+        <$> (map ((,5) . ("bad" </>)) . filter (isSuffixOf ".cc") <$> listDirectory "bad")
+    let total = sum $ map (snd . snd) (bad ++ good)
+    score <- foldM (\s (expect, (fp, worth)) -> toTestProcess haskellJava fp >>= \p -> runFile total p s (expect, (fp, worth))) 0 (good ++ bad)
+    putStrLn ""
+    setSGR [SetColor Foreground Vivid Blue]
+    putStrLn $ "testing complete, final (tentative) score: " ++ show score ++ "/" ++ show total
     setSGR [Reset]
-    return $ score + 2
-  else do
-    setSGR [SetColor Foreground Vivid Red]
-    putStrLn $ "typecheck failure! score: " ++ show score ++ "/80"
-    setSGR [Reset]
-    putStrLn $ "    expected typechecking to " ++ (if expect == ExitSuccess then "pass, but it failed!" else "fail, but it passed!")
-    putStrLn "    source program:" 
-    putStrLn (unlines . map ("    " ++) $ lines source)
-    putStrLn "    typechecker standard output:"
-    putStrLn (unlines . map ("    " ++) $ lines output) 
-    return score
+
+runFile :: Int -> CreateProcess -> Int -> (ExitCode, (FilePath, Int)) -> IO Int
+runFile total process score (expect, (filename, worth)) =
+  do
+    putStrLn $ "interpreting file: " ++ filename ++ " ... "
+    input <- readFile (filename ++ ".in")
+    source <- readFile filename
+    (Just stdin, Just stdout, Just stderr, ph) <- createProcess process
+    hPutStr stdin input
+    exitCode <- waitForProcess ph
+    output <- hGetContents stdout
+    err <- hGetContents stderr
+    outputGolden <- readFile (filename ++ ".out")
+    if not $ exitCode `matches` expect
+      then do
+        setSGR [SetColor Foreground Vivid Red]
+        print exitCode
+        print expect
+        putStrLn $ "test failed! score: " ++ show score ++ "/" ++ show total
+        setSGR [Reset]
+        putStrLn $ "    expected interpreter to " ++ (if expect == ExitSuccess then "succeed, but it failed!" else "fail, but it succeeded!")
+        putStrLn "    interpreter standard output:"
+        putStrLn (unlines . map ("    " ++) $ lines output)
+        putStrLn "    interpreter standard error:"
+        putStrLn (unlines . map ("    " ++) $ lines err)
+        return score
+      else
+        if exitCode `matches` ExitFailure 2
+          then do
+            setSGR [SetColor Foreground Dull Green]
+            putStrLn $ "test passed! score: " ++ show (score + worth) ++ "/" ++ show total
+            setSGR [Reset]
+            return $ score + worth
+          else
+            if output /= outputGolden
+              then do
+                setSGR [SetColor Foreground Vivid Red]
+                putStrLn $ "test failed! score: " ++ show score ++ "/" ++ show total
+                setSGR [Reset]
+                putStrLn "    interpreter standard output:"
+                putStrLn (unlines . map ("    " ++) $ lines output)
+                putStrLn "    expected output:"
+                putStrLn (unlines . map ("    " ++) $ lines outputGolden)
+                return score
+              else do
+                setSGR [SetColor Foreground Dull Green]
+                putStrLn $ "test passed! score: " ++ show (score + worth) ++ "/" ++ show total
+                setSGR [Reset]
+                return $ score + worth
 
 matches :: ExitCode -> ExitCode -> Bool
-matches ExitSuccess     ExitSuccess     = True
+matches ExitSuccess ExitSuccess = True
 matches (ExitFailure _) (ExitFailure _) = True
-matches _               _               = False
+matches _ _ = False

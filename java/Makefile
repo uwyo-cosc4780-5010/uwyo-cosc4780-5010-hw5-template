@@ -1,7 +1,7 @@
-## Makefile for UWYO COSC 4780/5010 Midterm - Java side
+## Makefile for UWYO COSC 4780/5010 Homework 4 - Java side
 ## Author: Finley McIlwaine
 
-.PHONY : bnfc build parse compile test
+.PHONY : bnfc parse test test_grad build
 
 bnfc/cpp/*.java: CPP.cf
 	bnfc --java --makefile=bnfc.mk -p bnfc $^
@@ -12,14 +12,13 @@ bnfc/cpp/*.java: CPP.cf
 
 bnfc: bnfc/cpp/*.java
 
-build: *.class
+install: *.class
 
 parse: build bnfc
 	@java bnfc.cpp.Test
 
-compile: bnfc build
-	@java Main
-
 test: bnfc build
 	@cd ../test && cabal -v0 run tester java
 
+test_grad: bnfc build
+	@cd ../test && cabal -v0 run tester java grad

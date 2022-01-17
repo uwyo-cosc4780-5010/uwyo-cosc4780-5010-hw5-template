@@ -1,10 +1,24 @@
+{-# LANGUAGE LambdaCase #-}
 module Main where
 
-import ParCPP ( pProgram, myLexer )
+import ParCPP (myLexer, pProgram)
+import System.Exit
+import System.Environment
+
+data RunLevel 
+  = Typecheck
+  | Interpret
 
 main :: IO ()
 main = do
-  c <- getContents
-  case pProgram (myLexer c) of
-    Left err -> putStrLn "parse error!" >> putStrLn err
-    Right tree -> undefined -- successful parse! typecheck here
+  getArgs >>= \case
+    (source:_) -> do
+      code <- readFile source
+      case pProgram (myLexer source) of
+        Left err -> do
+          putStrLn "SYNTAX ERROR"
+          putStrLn err
+          exitFailure
+        Right tree -> undefined -- add type checker and interpreter here!
+    _ -> do putStrLn "icpp: expected source file as argument"
+            exitFailure

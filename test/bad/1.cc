@@ -1,5 +1,5 @@
 int main()
 {
     int x, y, z;
-    int x;
+    return 1; // Interpreter should forward program's exit code
 }

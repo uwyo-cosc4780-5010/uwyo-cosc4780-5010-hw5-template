@@ -1,10 +1,7 @@
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.FileReader;
+
+import bnfc.cpp.Absyn.*;
 
 import bnfc.cpp.Yylex;
 import bnfc.cpp.parser;
@@ -13,20 +10,25 @@ class Main {
     public static void main(String[] args) {
         Yylex l;
         parser p;
-        Reader input = new InputStreamReader(System.in);
-        l = new Yylex(input);
-        p = new parser(l, l.getSymbolFactory());
-        bnfc.cpp.Absyn.Program ast;
+        if (args.length != 1) {
+            System.err.println("icpp: expected source file as argument");
+            System.err.println("usage: icpp <source file>");
+            System.exit(1);
+        }
         try {
-            ast = p.pProgram();
+            FileReader input = new FileReader(args[0]);
+            l = new Yylex(input);
+            p = new parser(l, l.getSymbolFactory());
+            bnfc.cpp.Absyn.PDefs ast;
+            ast = (PDefs) p.pProgram();
             
-            // Successful parse! Typecheck here
+            // Successful parse! Typecheck here and interpret here
 
         } catch (IOException e) {
             System.err.println("i/o error! oh no!");
             System.exit(1);
         } catch (Throwable e) {
-            System.err.println("parse error!");
+            System.err.println("error!");
             e.printStackTrace();
             System.exit(1);
         }

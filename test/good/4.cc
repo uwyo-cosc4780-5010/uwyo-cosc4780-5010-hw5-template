@@ -1,13 +1,20 @@
+// Macros to shut up the C++ warnings
+#define printInt(x)
+#define printDouble(x)
+#define printString(x)
+#define readInt() 0
+#define readDouble() 0
+#define readString() 0
+
 int main()
 {
-    int x, y, z;
-    x = 4;
-    y = 5;
-    z++;
-    x = add(y, z) - z * y / x;
-}
-
-int add(int x, int y)
-{
-    return x + y;
+    int sum = 0;
+    int num = 0;
+    int x;
+    while ((x = readInt()) != 0)
+    {
+        sum = sum + x;
+        num++;
+    }
+    printInt(sum / num);
 }

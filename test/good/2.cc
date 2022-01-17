@@ -1,13 +1,17 @@
-int add(int x, int y)
-{
-    return x + y;
-}
+// Macros to shut up the C++ warnings
+#define printInt(x)
+#define printDouble(x)
+#define printString(x)
+#define readInt() 0
+#define readDouble() 0
+#define readString() 0
 
 int main()
 {
-    int x, y, z;
-    x = 4;
-    y = 5;
-    z = 6;
-    x = add(y, z);
+    printString("Give me a number: ");
+    int x = readInt();
+    printString("You know what's funnier than ");
+    printInt(x);
+    printString("?\n");
+    printInt(x+1);
 }
