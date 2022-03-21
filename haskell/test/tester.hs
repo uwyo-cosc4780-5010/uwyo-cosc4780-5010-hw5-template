@@ -32,10 +32,10 @@ toTestProcess haskellJava sourceFile = do
           RawCommand
             ( if haskellJava == "java"
                 then "java"
-                else takeDirectory wd </> haskellJava </> "icpp"
+                else takeDirectory wd </> "icpp"
             )
             (["Main" | haskellJava == "java"] ++ [wd </> sourceFile]),
-        cwd = Just (takeDirectory wd </> haskellJava),
+        cwd = Just (takeDirectory wd),
         env = Nothing,
         std_in = CreatePipe,
         std_out = CreatePipe,
