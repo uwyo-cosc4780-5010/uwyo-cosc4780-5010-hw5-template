@@ -11,7 +11,7 @@ class Main {
         Yylex l;
         parser p;
         if (args.length != 1) {
-            System.err.println("icpp: expected source file as argument");
+            System.err.println("ccpp: expected source file as argument");
             System.err.println("usage: ccpp <source file>");
             System.exit(1);
         }
