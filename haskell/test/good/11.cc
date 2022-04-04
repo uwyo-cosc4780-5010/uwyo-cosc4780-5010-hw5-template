@@ -32,12 +32,12 @@ int main()
     if (y == 50.0)
     {
         printString("epic hacking\n");
-        printString("¯\\_(ツ)_/¯\n");
+        printString("B)\n");
     }
     else
     {
         printString("oh no!\n");
-        printString("¯\\_(ツ)_/¯\n");
+        printString(":,(\n");
     }
     return 0;
 }

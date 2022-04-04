@@ -1,24 +1,39 @@
-## Makefile for UWYO COSC 4780/5010 Homework 4 - Haskell side
+## Makefile for UWYO COSC 4780/5010 Homework 5 - Haskell side
 ## Author: Finley McIlwaine
 
-.PHONY : bnfc parse test test_grad install
+.PHONY : bnfc parse test test_grad install assemble clean
+
+all: install
+
+clean:
+	rm *.class
+	rm *.j
+	rm ccpp
 
 bnfc/*.hs: CPP.cf
 	bnfc -m -o bnfc $^
 	cd bnfc && make
-
 bnfc: bnfc/*.hs
 
-parse: bnfc
-	@./bnfc/TestCPP
+runtime.class: runtime.java
+	javac runtime.java
 
-icpp: *.hs
-	cabal install exe:icpp --installdir . --overwrite-policy=always icpp
+ccpp: *.hs bnfc/*.hs
+	cabal install exe:ccpp --installdir . --overwrite-policy=always
 
-install: icpp bnfc
+install: ccpp runtime.class
+
+assemble:
+	python3 ./test/Krakatau/assemble.py ./*.j
 
 test: install bnfc
-	@cd ../test && cabal -v0 run tester haskell
+	cp runtime.class test/good/
+	cp runtime.class test/bad/
+	cd test && cabal -v0 run tester haskell
 
 test_grad: install bnfc
-	@cd ../test && cabal -v0 run tester haskell grad
+	cp runtime.class test/good/
+	cp runtime.class test/bad/
+	cp runtime.class test/grad/good/
+	cp runtime.class test/grad/bad/
+	cd test && cabal -v0 run tester haskell grad

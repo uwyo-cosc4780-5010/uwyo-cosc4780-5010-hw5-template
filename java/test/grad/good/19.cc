@@ -13,6 +13,7 @@ int modulo(int num, int div) {
 int main()
 {
     int n1, n2, hcf;
+    hcf = 0; // Because JVM will be upset if this is potentially uninitialized
     printString("Enter two numbers:\n");
     n1 = readInt();
     n2 = readInt();

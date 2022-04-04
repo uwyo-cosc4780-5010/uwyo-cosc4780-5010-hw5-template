@@ -12,7 +12,7 @@ class Main {
         parser p;
         if (args.length != 1) {
             System.err.println("icpp: expected source file as argument");
-            System.err.println("usage: icpp <source file>");
+            System.err.println("usage: ccpp <source file>");
             System.exit(1);
         }
         try {
@@ -22,7 +22,8 @@ class Main {
             bnfc.cpp.Absyn.PDefs ast;
             ast = (PDefs) p.pProgram();
             
-            // Successful parse! Typecheck here and interpret here
+            // Successful parse! Type check and compile here
+            System.out.println("not implemented!");
 
         } catch (IOException e) {
             System.err.println("i/o error! oh no!");

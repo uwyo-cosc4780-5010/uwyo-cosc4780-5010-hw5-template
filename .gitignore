@@ -1,4 +1,5 @@
 *.class
-*/bnfc
+**/bnfc
+*.j
 *bnfc.mk*
 **/dist-newstyle
