@@ -10,7 +10,7 @@ int main()
 {
     printString("Give me a number: ");
     int x = readInt();
-    printString("You know what's funnier than ");
+    printString("Psh. You know what's funnier than ");
     printInt(x);
     printString("?\n");
     printInt(x+1);

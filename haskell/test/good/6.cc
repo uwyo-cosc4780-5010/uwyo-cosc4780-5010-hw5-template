@@ -15,7 +15,7 @@ double shadowMePlz()
 {
     int x = 10;
     {
-        double x = 100;
+        double x = 100.0;
         return x;
     }
     return 4.252;

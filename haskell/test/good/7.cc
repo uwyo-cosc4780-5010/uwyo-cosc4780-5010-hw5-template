@@ -16,7 +16,7 @@ double shadowMePlz(int x, bool y)
     x = 10;
     if (y)
     {
-        double x = 100;
+        double x = 100.0;
         return x;
     }
     else
